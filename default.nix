@@ -1,8 +1,6 @@
 { pkgs }:
 let
-  sharedModule = {
-    virtualisation.graphics = false;
-  };
+  sharedModule = { virtualisation.graphics = false; };
 
   user = "alice";
 
@@ -14,12 +12,12 @@ let
 
   extraPythonPackages = pythonPkgs.requiredPythonModules [ selenium ];
 
-  insertPythonPaths = pkgs.lib.strings.concatMapStringsSep "\n" (
-    drv:
-    if drv ? pythonModule
-    then ''sys.path.insert(0, "${drv}/lib/${drv.pythonModule.libPrefix}/site-packages")''
-    else ""
-  ) extraPythonPackages;
+  insertPythonPaths = pkgs.lib.strings.concatMapStringsSep "\n" (drv:
+    if drv ? pythonModule then
+      ''
+        sys.path.insert(0, "${drv}/lib/${drv.pythonModule.libPrefix}/site-packages")''
+    else
+      "") extraPythonPackages;
 
   browserSet = {
     firefox = {
@@ -34,15 +32,9 @@ let
       name = "chromium";
     };
   };
-in
-{
-  name,
-  browser
-}:
-let
-  br = browser browserSet;
-in
-pkgs.nixosTest ({
+in { name, browser }:
+let br = browser browserSet;
+in pkgs.nixosTest ({
   name = "${name}-${br.name}";
 
   nodes = {
@@ -57,18 +49,13 @@ pkgs.nixosTest ({
 
       virtualisation.memorySize = 512;
       environment = {
-        systemPackages = [
-          pkgs.selenium-server-standalone
-        ] ++ br.packages pkgs;
+        systemPackages = [ pkgs.selenium-server-standalone ]
+          ++ br.packages pkgs;
 
-        variables = {
-          "XAUTHORITY" = "/home/${user}/.Xauthority";
-        };
+        variables = { "XAUTHORITY" = "/home/${user}/.Xauthority"; };
       };
 
-      networking.firewall = {
-        allowedTCPPorts = [ seleniumPort ];
-      };
+      networking.firewall = { allowedTCPPorts = [ seleniumPort ]; };
     };
   };
 
