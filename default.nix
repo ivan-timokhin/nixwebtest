@@ -21,7 +21,7 @@ let
     else ""
   ) extraPythonPackages;
 
-  browsers = {
+  browserSet = {
     firefox = {
       packages = p: [ p.firefox-unwrapped p.geckodriver ];
       seleniumModule = "firefox";
@@ -34,9 +34,8 @@ let
   };
 in
 { browser }:
-assert browsers ? "${browser}";
 let
-  br = browsers.${browser};
+  br = browser browserSet;
 in
 pkgs.nixosTest ({
   nodes = {

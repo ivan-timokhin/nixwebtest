@@ -4,6 +4,6 @@ let
   runner = import ./. { inherit pkgs; };
 in
 {
-  firefox = runner { browser = "firefox"; };
-  chromium = runner { browser = "chromium"; };
+  firefox = runner { browser = b: b.firefox; };
+  chromium = runner { browser = b: b.chromium; };
 }
