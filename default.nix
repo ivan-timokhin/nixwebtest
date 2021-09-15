@@ -20,6 +20,23 @@ let
     then ''sys.path.insert(0, "${drv}/lib/${drv.pythonModule.libPrefix}/site-packages")''
     else ""
   ) extraPythonPackages;
+
+  browsers = {
+    firefox = {
+      packages = p: [ p.firefox-unwrapped p.geckodriver ];
+      seleniumModule = "firefox";
+    };
+
+    chromium = {
+      packages = p: [ p.chromium ];
+      seleniumModule = "chrome";
+    };
+  };
+in
+{ browser }:
+assert browsers ? "${browser}";
+let
+  br = browsers.${browser};
 in
 pkgs.nixosTest ({
   nodes = {
@@ -32,11 +49,11 @@ pkgs.nixosTest ({
 
       test-support.displayManager.auto.user = user;
 
+      virtualisation.memorySize = 512;
       environment = {
         systemPackages = [
-          pkgs.chromium
           pkgs.selenium-server-standalone
-        ];
+        ] ++ br.packages pkgs;
 
         variables = {
           "XAUTHORITY" = "/home/${user}/.Xauthority";
@@ -57,7 +74,7 @@ pkgs.nixosTest ({
     ${insertPythonPaths}
 
     from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.${br.seleniumModule}.options import Options
 
     def ru(cmd):
         return "su - ${user} -c " + shlex.quote(cmd)
