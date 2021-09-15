@@ -4,13 +4,7 @@ let
   pkgs = import nixpkgs { };
   runner = import ./. { inherit pkgs; };
   name = "tester";
-in {
-  firefox = runner {
-    inherit name;
-    browser = b: b.firefox;
-  };
-  chromium = runner {
-    inherit name;
-    browser = b: b.chromium;
-  };
+in runner {
+  inherit name;
+  browsers = b: [ b.firefox b.chromium ];
 }

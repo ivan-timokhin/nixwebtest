@@ -32,57 +32,63 @@ let
       name = "chromium";
     };
   };
-in { name, browser }:
-let br = browser browserSet;
-in pkgs.nixosTest ({
-  name = "${name}-${br.name}";
 
-  nodes = {
-    client = { config, pkgs, lib, modulesPath, ... }: {
-      imports = [
-        sharedModule
-        (modulesPath + "/../tests/common/x11.nix")
-        (modulesPath + "/../tests/common/user-account.nix")
-      ];
+  mkTest = { name, browser }:
+    pkgs.nixosTest ({
+      name = "${name}-${browser.name}";
 
-      test-support.displayManager.auto.user = user;
+      nodes = {
+        client = { config, pkgs, lib, modulesPath, ... }: {
+          imports = [
+            sharedModule
+            (modulesPath + "/../tests/common/x11.nix")
+            (modulesPath + "/../tests/common/user-account.nix")
+          ];
 
-      virtualisation.memorySize = 512;
-      environment = {
-        systemPackages = [ pkgs.selenium-server-standalone ]
-          ++ br.packages pkgs;
+          test-support.displayManager.auto.user = user;
 
-        variables = { "XAUTHORITY" = "/home/${user}/.Xauthority"; };
+          virtualisation.memorySize = 512;
+          environment = {
+            systemPackages = [ pkgs.selenium-server-standalone ]
+              ++ browser.packages pkgs;
+
+            variables = { "XAUTHORITY" = "/home/${user}/.Xauthority"; };
+          };
+
+          networking.firewall = { allowedTCPPorts = [ seleniumPort ]; };
+        };
       };
 
-      networking.firewall = { allowedTCPPorts = [ seleniumPort ]; };
-    };
-  };
+      testScript = ''
+        import shlex
 
-  testScript = ''
-    import shlex
+        import sys
 
-    import sys
+        ${insertPythonPaths}
 
-    ${insertPythonPaths}
+        from selenium import webdriver
+        from selenium.webdriver.${browser.seleniumModule}.options import Options
 
-    from selenium import webdriver
-    from selenium.webdriver.${br.seleniumModule}.options import Options
+        def ru(cmd):
+            return "su - ${user} -c " + shlex.quote(cmd)
 
-    def ru(cmd):
-        return "su - ${user} -c " + shlex.quote(cmd)
+        start_all()
+        client.wait_for_x()
+        client.screenshot("initial")
+        client.succeed(ru("ulimit -c unlimited; selenium-server & disown"))
+        client.wait_for_open_port(${toString seleniumPort})
+        client.screenshot("after")
 
-    start_all()
-    client.wait_for_x()
-    client.screenshot("initial")
-    client.succeed(ru("ulimit -c unlimited; selenium-server & disown"))
-    client.wait_for_open_port(${toString seleniumPort})
-    client.screenshot("after")
+        options = Options()
+        client.forward_port(${toString seleniumPort}, ${toString seleniumPort})
+        with webdriver.Remote(options=options) as driver:
+            driver.maximize_window()
+            client.screenshot("maximized")
+      '';
+    });
 
-    options = Options()
-    client.forward_port(${toString seleniumPort}, ${toString seleniumPort})
-    with webdriver.Remote(options=options) as driver:
-        driver.maximize_window()
-        client.screenshot("maximized")
-  '';
-})
+in { name, browsers }:
+pkgs.linkFarm name (map (browser: {
+  name = browser.name;
+  path = mkTest { inherit name browser; };
+}) (browsers browserSet))
