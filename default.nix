@@ -25,19 +25,26 @@ let
     firefox = {
       packages = p: [ p.firefox-unwrapped p.geckodriver ];
       seleniumModule = "firefox";
+      name = "firefox";
     };
 
     chromium = {
       packages = p: [ p.chromium ];
       seleniumModule = "chrome";
+      name = "chromium";
     };
   };
 in
-{ browser }:
+{
+  name,
+  browser
+}:
 let
   br = browser browserSet;
 in
 pkgs.nixosTest ({
+  name = "${name}-${br.name}";
+
   nodes = {
     client = { config, pkgs, lib, modulesPath, ... }: {
       imports = [
