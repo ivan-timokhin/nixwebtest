@@ -4,7 +4,38 @@ let
   pkgs = import nixpkgs { };
   runner = import ./. { inherit pkgs; };
   name = "tester";
-in runner {
-  inherit name;
-  browsers = b: [ b.firefox b.chromium ];
-}
+in pkgs.linkFarm "webtest-nix-tests" [
+  {
+    name = "${name}-inline-script";
+    path = runner {
+      name = "${name}-inline-script";
+      browsers = b: [ b.firefox b.chromium ];
+
+      script = ''
+        print("Hello from an inline script")
+        driver.fullscreen_window()
+        client.screenshot("iscript")
+      '';
+    };
+  }
+  {
+    name = "${name}-file-script";
+    path = runner {
+      name = "${name}-file-script";
+      browsers = b: [ b.firefox b.chromium ];
+
+      script = ./script.py;
+    };
+  }
+  {
+    name = "${name}-fun-script";
+    path = runner {
+      name = "${name}-fun-script";
+      browsers = b: [ b.firefox b.chromium ];
+
+      script = { nodes, ... }: ''
+        client.screenshot("${nodes.client.config.test-support.displayManager.auto.user}")
+      '';
+    };
+  }
+]

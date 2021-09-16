@@ -33,7 +33,7 @@ let
     };
   };
 
-  mkTest = { name, browser }:
+  mkTest = { name, browser, script }:
     pkgs.nixosTest ({
       name = "${name}-${browser.name}";
 
@@ -47,7 +47,7 @@ let
 
           test-support.displayManager.auto.user = user;
 
-          virtualisation.memorySize = 512;
+          virtualisation.memorySize = 1024;
           environment = {
             systemPackages = [ pkgs.selenium-server-standalone ]
               ++ browser.packages pkgs;
@@ -59,36 +59,57 @@ let
         };
       };
 
-      testScript = ''
-        import shlex
+      testScript = r:
+        let
+          script' = if pkgs.lib.isFunction script then script r else script;
+          script'' = if pkgs.lib.isString script' then
+            pkgs.writeTextFile {
+              name = "${name}-script";
+              text = script';
+            }
+          else
+            script';
+        in ''
+          initialGlobals = globals()
 
-        import sys
+          import shlex
 
-        ${insertPythonPaths}
+          import sys
 
-        from selenium import webdriver
-        from selenium.webdriver.${browser.seleniumModule}.options import Options
+          ${insertPythonPaths}
 
-        def ru(cmd):
-            return "su - ${user} -c " + shlex.quote(cmd)
+          from selenium import webdriver
+          from selenium.webdriver.${browser.seleniumModule}.options import Options
 
-        start_all()
-        client.wait_for_x()
-        client.screenshot("initial")
-        client.succeed(ru("ulimit -c unlimited; selenium-server & disown"))
-        client.wait_for_open_port(${toString seleniumPort})
-        client.screenshot("after")
+          def ru(cmd):
+              return "su - ${user} -c " + shlex.quote(cmd)
 
-        options = Options()
-        client.forward_port(${toString seleniumPort}, ${toString seleniumPort})
-        with webdriver.Remote(options=options) as driver:
-            driver.maximize_window()
-            client.screenshot("maximized")
-      '';
+          start_all()
+          client.wait_for_x()
+          client.screenshot("initial")
+          client.succeed(ru("ulimit -c unlimited; selenium-server & disown"))
+          client.wait_for_open_port(${toString seleniumPort})
+          client.screenshot("after")
+
+          options = Options()
+          client.forward_port(${toString seleniumPort}, ${
+            toString seleniumPort
+          })
+          with webdriver.Remote(options=options) as driver:
+              driver.maximize_window()
+              client.screenshot("maximized")
+
+              initialGlobals["driver"] = driver
+
+              with open("${script''}") as f:
+                  script = f.read()
+
+              exec(script, initialGlobals)
+        '';
     });
 
-in { name, browsers }:
+in { name, browsers, script }:
 pkgs.linkFarm name (map (browser: {
   name = browser.name;
-  path = mkTest { inherit name browser; };
+  path = mkTest { inherit name browser script; };
 }) (browsers browserSet))
