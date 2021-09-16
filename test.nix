@@ -2,51 +2,32 @@
 let
   nixos = import sources.nixos { };
   nixos-unstable = import sources.nixos-unstable { };
-  name = "tester";
-  tests = { pkgs }:
+  tests = pkgs:
     let runner = import ./. { inherit pkgs; };
-    in pkgs.linkFarm "webtest-nix-tests" [
-      {
-        name = "${name}-inline-script";
-        path = runner {
-          name = "${name}-inline-script";
-          browsers = b: [ b.firefox b.chromium ];
+    in runner.testMany {
+      name = "webtest-nix-tests";
+      browsers = b: [ b.firefox b.chromium ];
+      scripts = {
+        inline = ''
+          print("Hello from an inline script")
+          driver.fullscreen_window()
+          client.screenshot("iscript")
+        '';
 
-          script = ''
-            print("Hello from an inline script")
-            driver.fullscreen_window()
-            client.screenshot("iscript")
-          '';
-        };
-      }
-      {
-        name = "${name}-file-script";
-        path = runner {
-          name = "${name}-file-script";
-          browsers = b: [ b.firefox b.chromium ];
+        file = ./script.py;
 
-          script = ./script.py;
-        };
-      }
-      {
-        name = "${name}-fun-script";
-        path = runner {
-          name = "${name}-fun-script";
-          browsers = b: [ b.firefox b.chromium ];
-
-          script = { nodes, ... }: ''
-            client.screenshot("${nodes.client.config.test-support.displayManager.auto.user}")
-          '';
-        };
-      }
-    ];
+        function = { nodes, ... }: ''
+          client.screenshot("${nodes.client.config.test-support.displayManager.auto.user}")
+        '';
+      };
+    };
 in nixos.linkFarm "webtest-nix-multi-tests" [
   {
     name = "nixos";
-    path = tests { pkgs = nixos; };
+    path = tests nixos;
   }
   {
     name = "nixos-unstable";
-    path = tests { pkgs = nixos-unstable; };
+    path = tests nixos-unstable;
   }
 ]

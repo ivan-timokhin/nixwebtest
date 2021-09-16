@@ -33,9 +33,9 @@ let
     };
   };
 
-  mkTest = { name, browser, script }:
+  testSingleBrowser = { name, browser, script }:
     pkgs.nixosTest ({
-      name = "${name}-${browser.name}";
+      inherit name;
 
       nodes = {
         client = { config, pkgs, lib, modulesPath, ... }: {
@@ -108,8 +108,23 @@ let
         '';
     });
 
-in { name, browsers, script }:
-pkgs.linkFarm name (map (browser: {
-  name = browser.name;
-  path = mkTest { inherit name browser script; };
-}) (browsers browserSet))
+  test = { name, browsers, script }:
+    pkgs.linkFarm name (map (browser: {
+      name = browser.name;
+      path = testSingleBrowser {
+        name = "${name}-${browser.name}";
+        inherit browser script;
+      };
+    }) (browsers browserSet));
+
+  testMany = { name, browsers, scripts }:
+    pkgs.linkFarm name (map (scriptName: {
+      name = scriptName;
+      path = test {
+        name = "${name}-${scriptName}";
+        inherit browsers;
+        script = scripts.${scriptName};
+      };
+    }) (builtins.attrNames scripts));
+
+in { inherit testSingleBrowser test testMany; }
