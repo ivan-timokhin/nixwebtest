@@ -13,6 +13,9 @@ let
           driver.fullscreen_window()
           driver.get("http://webserver")
           client.screenshot("iscript")
+          print("Saving screenshot")
+          driver.save_screenshot("selenium.png")
+          print("Saved screenshot")
         '';
 
         # file = ./script.py;

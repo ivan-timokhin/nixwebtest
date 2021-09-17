@@ -77,6 +77,8 @@ let
 
           import sys
 
+          import os
+
           ${insertPythonPaths}
 
           from selenium import webdriver
@@ -84,6 +86,8 @@ let
 
           def ru(cmd):
               return "su - ${user} -c " + shlex.quote(cmd)
+
+          os.chdir(os.environ.get("out", os.getcwd()))
 
           start_all()
           client.wait_for_x()
