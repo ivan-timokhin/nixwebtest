@@ -11,14 +11,25 @@ let
         inline = ''
           print("Hello from an inline script")
           driver.fullscreen_window()
+          driver.get("http://webserver")
           client.screenshot("iscript")
         '';
 
-        file = ./script.py;
+        # file = ./script.py;
 
-        function = { nodes, ... }: ''
-          client.screenshot("${nodes.client.config.test-support.displayManager.auto.user}")
-        '';
+        # function = { nodes, ... }: ''
+        #   client.screenshot("${nodes.client.config.test-support.displayManager.auto.user}")
+        # '';
+      };
+
+      nodes = {
+        webserver = { config, pkgs, ... }: {
+          services.httpd.enable = true;
+          services.httpd.adminAddr = "alice@example.org";
+          services.httpd.virtualHosts.localhost.documentRoot =
+            "${pkgs.valgrind.doc}/share/doc/valgrind/html";
+          networking.firewall.allowedTCPPorts = [ 80 ];
+        };
       };
     };
 in nixos.linkFarm "webtest-nix-multi-tests" [

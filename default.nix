@@ -33,7 +33,8 @@ let
     };
   };
 
-  testSingleBrowser = { name, browser, script }:
+  testSingleBrowser = { name, browser, script, nodes }:
+    assert !(pkgs.lib.hasAttr "client" nodes);
     pkgs.nixosTest ({
       inherit name;
 
@@ -57,7 +58,7 @@ let
 
           networking.firewall = { allowedTCPPorts = [ seleniumPort ]; };
         };
-      };
+      } // nodes;
 
       testScript = r:
         let
@@ -108,21 +109,21 @@ let
         '';
     });
 
-  test = { name, browsers, script }:
+  test = { name, browsers, script, nodes }:
     pkgs.linkFarm name (map (browser: {
       name = browser.name;
       path = testSingleBrowser {
         name = "${name}-${browser.name}";
-        inherit browser script;
+        inherit browser script nodes;
       };
     }) (browsers browserSet));
 
-  testMany = { name, browsers, scripts }:
+  testMany = { name, browsers, scripts, nodes }:
     pkgs.linkFarm name (map (scriptName: {
       name = scriptName;
       path = test {
         name = "${name}-${scriptName}";
-        inherit browsers;
+        inherit browsers nodes;
         script = scripts.${scriptName};
       };
     }) (builtins.attrNames scripts));
