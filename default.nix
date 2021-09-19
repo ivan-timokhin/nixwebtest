@@ -89,7 +89,7 @@ let
 
           os.chdir(os.environ.get("out", os.getcwd()))
 
-          start_all()
+          client.start()
           client.wait_for_x()
           client.succeed(ru("ulimit -c unlimited; selenium-server & disown"))
           client.wait_for_open_port(${toString seleniumPort})

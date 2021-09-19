@@ -91,6 +91,9 @@ let
         nodes = { inherit webserver; };
 
         script = ''
+          webserver.start()
+          webserver.wait_for_open_port(80)
+
           driver.get("http://webserver")
           p = driver.find_element_by_css_selector("body > p")
           assert p.text == "${test-word}"
