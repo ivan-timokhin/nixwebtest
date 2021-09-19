@@ -129,6 +129,20 @@ let
           assert nodes.client.config.test-word == test-word;
           "open('done', 'w')";
       };
+
+      client-memory = runner.test {
+        name = "${name}-cm";
+
+        browsers = b: [ b.firefox ];
+
+        nodes = { };
+
+        extraClientConfig = { virtualisation.memorySize = 768; };
+
+        script = { nodes, ... }:
+          assert nodes.client.config.virtualisation.memorySize == 768;
+          "open('done', 'w')";
+      };
     };
 
   tests = {

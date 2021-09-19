@@ -49,7 +49,7 @@ let
 
           test-support.displayManager.auto.user = user;
 
-          virtualisation.memorySize = 1024;
+          virtualisation.memorySize = lib.mkOverride 200 1024;
           environment = {
             systemPackages = [ pkgs.selenium-server-standalone ]
               ++ browser.packages pkgs;
