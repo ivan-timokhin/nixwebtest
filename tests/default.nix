@@ -1,0 +1,131 @@
+{ sources ? import ../nix/sources.nix }:
+let
+  test-pkgs = {
+    nixos = import sources.nixos { };
+    nixos-unstable = import sources.nixos-unstable { };
+  };
+
+  pkgs = test-pkgs.nixos;
+
+  # Longest word in Shakespeare; technically Latin.
+  test-word = "honorificabilitudinitatibus";
+
+  test-page = pkgs.writeTextDir "index.html" ''
+    <!DOCTYPE html>
+    <html lang="en-GB">
+      <head>
+        <meta charset="utf-8">
+        <title>Test page</title>
+        <style>
+          body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              min-width: 100vw;
+              position: fixed;
+          }
+
+          body > p {
+              font-size: 60px;
+              font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <p>${test-word}</p>
+      </body>
+    </html>
+  '';
+
+  webserver = { config, lib, pkgs, ... }: {
+    options = {
+      test-word = lib.mkOption {
+        type = lib.types.str;
+        description = "Text inserted into config for test purposes";
+      };
+    };
+
+    config = {
+      services.lighttpd = {
+        enable = true;
+        document-root = "${test-page}";
+      };
+
+      inherit test-word;
+
+      networking.firewall.allowedTCPPorts = [ 80 ];
+    };
+  };
+
+  testOn = name: pkgs:
+    let runner = import ../. { inherit pkgs; };
+    in {
+      script-types = runner.testMany {
+        name = "${name}-scripts";
+        browsers = b: [ b.chromium ];
+
+        nodes = { inherit webserver; };
+
+        scripts = {
+          inline = "open('done', 'w')";
+
+          path = ./css-check.py;
+
+          function-inline = { nodes, ... }:
+            assert nodes.webserver.config.test-word == test-word;
+            "open('done', 'w')";
+
+          function-path = { nodes, ... }:
+            assert nodes.webserver.config.test-word == test-word;
+            ./css-check.py;
+        };
+      };
+
+      browsers = runner.test {
+        name = "${name}-browsers";
+
+        browsers = b: builtins.attrValues b;
+
+        nodes = { inherit webserver; };
+
+        script = ''
+          driver.get("http://webserver")
+          p = driver.find_element_by_css_selector("body > p")
+          assert p.text == "${test-word}"
+          open("done", "w")
+        '';
+      };
+
+      screenshots = runner.testMany {
+        name = "${name}-screenshots";
+
+        browsers = b: [ b.firefox ];
+
+        nodes = { };
+
+        scripts = {
+          selenium = "driver.save_screenshot('screen.png')";
+          nixos = "client.screenshot('screen')";
+        };
+      };
+    };
+
+  tests = {
+    nixos = testOn "nixos" test-pkgs.nixos;
+    nixos-unstable = testOn "nixos-unstable" test-pkgs.nixos-unstable;
+  };
+
+  run-all-tests = import ./linkfarm.nix pkgs "webtest-nix-selftests" tests;
+
+in (pkgs.runCommand "webtest-nix-check-output" { } ''
+  mkdir $out
+  find -L ${run-all-tests} -printf '%y %P\n' | sort -k2 > $out/list
+  diff $out/list ${./test-output}
+'').overrideAttrs (oldAttrs: {
+  passthru = {
+    inherit tests;
+    inherit run-all-tests;
+  };
+})

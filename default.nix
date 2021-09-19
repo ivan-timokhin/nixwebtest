@@ -91,10 +91,8 @@ let
 
           start_all()
           client.wait_for_x()
-          client.screenshot("initial")
           client.succeed(ru("ulimit -c unlimited; selenium-server & disown"))
           client.wait_for_open_port(${toString seleniumPort})
-          client.screenshot("after")
 
           options = Options()
           client.forward_port(${toString seleniumPort}, ${
@@ -102,7 +100,6 @@ let
           })
           with webdriver.Remote(options=options) as driver:
               driver.maximize_window()
-              client.screenshot("maximized")
 
               initialGlobals["driver"] = driver
 
