@@ -6,6 +6,9 @@ d nixos-unstable/browsers/chromium
 f nixos-unstable/browsers/chromium/done
 d nixos-unstable/browsers/firefox
 f nixos-unstable/browsers/firefox/done
+d nixos-unstable/client-config
+d nixos-unstable/client-config/firefox
+f nixos-unstable/client-config/firefox/done
 d nixos-unstable/screenshots
 d nixos-unstable/screenshots/nixos
 d nixos-unstable/screenshots/nixos/firefox
@@ -31,6 +34,9 @@ d nixos/browsers/chromium
 f nixos/browsers/chromium/done
 d nixos/browsers/firefox
 f nixos/browsers/firefox/done
+d nixos/client-config
+d nixos/client-config/firefox
+f nixos/client-config/firefox/done
 d nixos/screenshots
 d nixos/screenshots/nixos
 d nixos/screenshots/nixos/firefox

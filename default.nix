@@ -33,7 +33,7 @@ let
     };
   };
 
-  testSingleBrowser = { name, browser, script, nodes }:
+  testSingleBrowser = { name, browser, script, nodes, extraClientConfig ? { } }:
     assert !(pkgs.lib.hasAttr "client" nodes);
     pkgs.nixosTest ({
       inherit name;
@@ -44,6 +44,7 @@ let
             sharedModule
             (modulesPath + "/../tests/common/x11.nix")
             (modulesPath + "/../tests/common/user-account.nix")
+            extraClientConfig
           ];
 
           test-support.displayManager.auto.user = user;
@@ -110,21 +111,21 @@ let
         '';
     });
 
-  test = { name, browsers, script, nodes }:
+  test = { name, browsers, script, nodes, extraClientConfig ? { } }:
     pkgs.linkFarm name (map (browser: {
       name = browser.name;
       path = testSingleBrowser {
         name = "${name}-${browser.name}";
-        inherit browser script nodes;
+        inherit browser script nodes extraClientConfig;
       };
     }) (browsers browserSet));
 
-  testMany = { name, browsers, scripts, nodes }:
+  testMany = { name, browsers, scripts, nodes, extraClientConfig ? { } }:
     pkgs.linkFarm name (map (scriptName: {
       name = scriptName;
       path = test {
         name = "${name}-${scriptName}";
-        inherit browsers nodes;
+        inherit browsers nodes extraClientConfig;
         script = scripts.${scriptName};
       };
     }) (builtins.attrNames scripts));

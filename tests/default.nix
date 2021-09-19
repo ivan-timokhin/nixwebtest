@@ -39,7 +39,7 @@ let
     </html>
   '';
 
-  webserver = { config, lib, pkgs, ... }: {
+  test-module = { lib, ... }: {
     options = {
       test-word = lib.mkOption {
         type = lib.types.str;
@@ -47,16 +47,18 @@ let
       };
     };
 
-    config = {
-      services.lighttpd = {
-        enable = true;
-        document-root = "${test-page}";
-      };
+    config = { inherit test-word; };
+  };
 
-      inherit test-word;
+  webserver = { config, lib, pkgs, ... }: {
+    imports = [ test-module ];
 
-      networking.firewall.allowedTCPPorts = [ 80 ];
+    services.lighttpd = {
+      enable = true;
+      document-root = "${test-page}";
     };
+
+    networking.firewall.allowedTCPPorts = [ 80 ];
   };
 
   testOn = name: pkgs:
@@ -112,6 +114,20 @@ let
           selenium = "driver.save_screenshot('screen.png')";
           nixos = "client.screenshot('screen')";
         };
+      };
+
+      client-config = runner.test {
+        name = "${name}-cc";
+
+        browsers = b: [ b.firefox ];
+
+        nodes = { };
+
+        extraClientConfig = test-module;
+
+        script = { nodes, ... }:
+          assert nodes.client.config.test-word == test-word;
+          "open('done', 'w')";
       };
     };
 
