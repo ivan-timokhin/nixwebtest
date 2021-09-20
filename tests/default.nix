@@ -167,9 +167,9 @@ let
 
   tests = builtins.mapAttrs testOn test-pkgs;
 
-  run-all-tests = import ./linkfarm.nix pkgs "webtest-nix-selftests" tests;
+  run-all-tests = import ./linkfarm.nix pkgs "nixwebtest-selftests" tests;
 
-in (pkgs.runCommand "webtest-nix-check-output" { } ''
+in (pkgs.runCommand "nixwebtest-check-output" { } ''
   mkdir $out
   find -L ${run-all-tests} -printf '%y %P\n' | sort -k2 > $out/list
   diff $out/list ${./test-output}
