@@ -164,10 +164,7 @@ let
       };
     };
 
-  tests = {
-    nixos = testOn "nixos" test-pkgs.nixos;
-    nixos-unstable = testOn "nixos-unstable" test-pkgs.nixos-unstable;
-  };
+  tests = builtins.mapAttrs testOn test-pkgs;
 
   run-all-tests = import ./linkfarm.nix pkgs "webtest-nix-selftests" tests;
 
