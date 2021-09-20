@@ -72,12 +72,9 @@ let
           else
             script';
         in ''
-          initialGlobals = globals()
-
-          import shlex
+          scriptGlobals = globals()
 
           import sys
-
           import os
 
           ${insertPythonPaths}
@@ -85,29 +82,32 @@ let
           from selenium import webdriver
           from selenium.webdriver.${browser.seleniumModule}.options import Options
 
-          def ru(cmd):
-              return "su - ${user} -c " + shlex.quote(cmd)
-
-          os.chdir(os.environ.get("out", os.getcwd()))
+          if "out" in os.environ:
+              os.chdir(os.environ["out"])
 
           client.start()
           client.wait_for_x()
-          client.succeed(ru("ulimit -c unlimited; selenium-server & disown"))
-          client.wait_for_open_port(${toString seleniumPort})
+
+          port = ${toString seleniumPort}
+          client.succeed("su - ${user} -c 'ulimit -c unlimited; selenium-server & disown'")
+          client.wait_for_open_port(port)
+          client.forward_port(port, port)
 
           options = Options()
-          client.forward_port(${toString seleniumPort}, ${
-            toString seleniumPort
-          })
           with webdriver.Remote(options=options) as driver:
               driver.maximize_window()
 
-              initialGlobals["driver"] = driver
+              scriptGlobals["driver"] = driver
 
               with open("${script''}") as f:
                   script = f.read()
 
-              exec(script, initialGlobals)
+              # This is not strictly necessary, but associates a file
+              # name with the script text for slightly friendlier
+              # error messages
+              script = compile(script, "${script''}", 'exec')
+
+              exec(script, scriptGlobals)
         '';
     });
 
