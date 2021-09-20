@@ -1,11 +1,11 @@
 { sources ? import ../nix/sources.nix }:
 let
   test-pkgs = {
-    nixos = import sources.nixos { };
-    nixos-unstable = import sources.nixos-unstable { };
+    stable = import sources.nixos { };
+    unstable = import sources.nixos-unstable { };
   };
 
-  pkgs = test-pkgs.nixos;
+  pkgs = test-pkgs.stable;
 
   test-word = "easily";
 
@@ -65,7 +65,7 @@ let
     in {
       script-types = runner.testMany {
         name = "${name}-scripts";
-        browsers = b: [ b.chromium ];
+        browsers = b: [ b.chromium.headless ];
 
         nodes = { inherit webserver; };
 
@@ -87,7 +87,8 @@ let
       browsers = runner.test {
         name = "${name}-browsers";
 
-        browsers = b: builtins.attrValues b;
+        browsers = b:
+          builtins.concatMap (b: [ b.gui b.headless ]) (builtins.attrValues b);
 
         nodes = { inherit webserver; };
 
@@ -105,7 +106,7 @@ let
       screenshots = runner.testMany {
         name = "${name}-screenshots";
 
-        browsers = b: [ b.firefox ];
+        browsers = b: [ b.firefox.gui ];
 
         nodes = { };
 
@@ -118,7 +119,7 @@ let
       client-config = runner.test {
         name = "${name}-cc";
 
-        browsers = b: [ b.firefox ];
+        browsers = b: [ b.firefox.headless ];
 
         nodes = { };
 
@@ -132,7 +133,7 @@ let
       client-memory = runner.test {
         name = "${name}-cm";
 
-        browsers = b: [ b.firefox ];
+        browsers = b: [ b.firefox.headless ];
 
         nodes = { };
 
@@ -146,7 +147,7 @@ let
       ocr = runner.test {
         name = "${name}-ocr";
 
-        browsers = b: [ b.firefox ];
+        browsers = b: [ b.firefox.gui ];
 
         nodes = { inherit webserver; };
 

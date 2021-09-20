@@ -19,14 +19,25 @@ let
     else
       "") extraPythonPackages;
 
-  browserSet = {
-    firefox = {
+  browserSet = let
+    mkBrowser = properties: {
+      gui = properties // {
+        name = "${properties.name}-gui";
+        gui = true;
+      };
+      headless = properties // {
+        name = "${properties.name}-headless";
+        gui = false;
+      };
+    };
+  in {
+    firefox = mkBrowser {
       packages = p: [ p.firefox-unwrapped p.geckodriver ];
       seleniumModule = "firefox";
       name = "firefox";
     };
 
-    chromium = {
+    chromium = mkBrowser {
       packages = p: [ p.chromium ];
       seleniumModule = "chrome";
       name = "chromium";
@@ -43,19 +54,21 @@ let
         client = { config, pkgs, lib, modulesPath, ... }: {
           imports = [
             sharedModule
-            (modulesPath + "/../tests/common/x11.nix")
             (modulesPath + "/../tests/common/user-account.nix")
             extraClientConfig
+          ] ++ lib.optionals browser.gui [
+            (modulesPath + "/../tests/common/x11.nix")
+            { test-support.displayManager.auto.user = user; }
           ];
-
-          test-support.displayManager.auto.user = user;
 
           virtualisation.memorySize = lib.mkOverride 200 1024;
           environment = {
             systemPackages = [ pkgs.selenium-server-standalone ]
               ++ browser.packages pkgs;
 
-            variables = { "XAUTHORITY" = "/home/${user}/.Xauthority"; };
+            variables = lib.mkIf browser.gui {
+              "XAUTHORITY" = "/home/${user}/.Xauthority";
+            };
           };
 
           networking.firewall = { allowedTCPPorts = [ seleniumPort ]; };
@@ -87,7 +100,7 @@ let
               os.chdir(os.environ["out"])
 
           client.start()
-          client.wait_for_x()
+          ${pkgs.lib.optionalString browser.gui "client.wait_for_x()"}
 
           port = ${toString seleniumPort}
           client.succeed("su - ${user} -c 'ulimit -c unlimited; selenium-server & disown'")
@@ -95,6 +108,7 @@ let
           client.forward_port(port, port)
 
           options = Options()
+          ${pkgs.lib.optionalString (!browser.gui) "options.headless = True"}
           with webdriver.Remote(options=options) as driver:
               driver.maximize_window()
 
