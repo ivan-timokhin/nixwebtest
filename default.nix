@@ -1,7 +1,5 @@
 { pkgs }:
 let
-  sharedModule = { virtualisation.graphics = false; };
-
   user = "alice";
 
   seleniumPort = 4444;
@@ -53,7 +51,6 @@ let
       nodes = {
         client = { config, pkgs, lib, modulesPath, ... }: {
           imports = [
-            sharedModule
             (modulesPath + "/../tests/common/user-account.nix")
             extraClientConfig
           ] ++ lib.optionals browser.gui [
@@ -62,6 +59,7 @@ let
           ];
 
           virtualisation.memorySize = lib.mkOverride 200 1024;
+          virtualisation.graphics = false;
           environment = {
             systemPackages = [ pkgs.selenium-server-standalone ]
               ++ browser.packages pkgs;
