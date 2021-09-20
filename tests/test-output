@@ -1,10 +1,18 @@
 d 
 d stable
 d stable/browsers
+d stable/browsers/chrome-gui
+f stable/browsers/chrome-gui/done
+d stable/browsers/chrome-headless
+f stable/browsers/chrome-headless/done
 d stable/browsers/chromium-gui
 f stable/browsers/chromium-gui/done
 d stable/browsers/chromium-headless
 f stable/browsers/chromium-headless/done
+d stable/browsers/firefox-esr-gui
+f stable/browsers/firefox-esr-gui/done
+d stable/browsers/firefox-esr-headless
+f stable/browsers/firefox-esr-headless/done
 d stable/browsers/firefox-gui
 f stable/browsers/firefox-gui/done
 d stable/browsers/firefox-headless
@@ -41,10 +49,18 @@ d stable/script-types/path/chromium-headless
 f stable/script-types/path/chromium-headless/done
 d unstable
 d unstable/browsers
+d unstable/browsers/chrome-gui
+f unstable/browsers/chrome-gui/done
+d unstable/browsers/chrome-headless
+f unstable/browsers/chrome-headless/done
 d unstable/browsers/chromium-gui
 f unstable/browsers/chromium-gui/done
 d unstable/browsers/chromium-headless
 f unstable/browsers/chromium-headless/done
+d unstable/browsers/firefox-esr-gui
+f unstable/browsers/firefox-esr-gui/done
+d unstable/browsers/firefox-esr-headless
+f unstable/browsers/firefox-esr-headless/done
 d unstable/browsers/firefox-gui
 f unstable/browsers/firefox-gui/done
 d unstable/browsers/firefox-headless

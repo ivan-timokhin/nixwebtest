@@ -35,10 +35,27 @@ let
       name = "firefox";
     };
 
+    firefox-esr = mkBrowser {
+      packages = p: [ p.firefox-esr p.geckodriver ];
+      seleniumModule = "firefox";
+      name = "firefox-esr";
+    };
+
     chromium = mkBrowser {
       packages = p: [ p.chromium ];
       seleniumModule = "chrome";
       name = "chromium";
+    };
+
+    chrome = mkBrowser {
+      packages = p:
+        [
+          (p.writeShellScriptBin "chrome" ''
+            exec ${p.google-chrome}/bin/google-chrome-stable "$@"
+          '')
+        ];
+      seleniumModule = "chrome";
+      name = "chrome";
     };
   };
 
