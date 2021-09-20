@@ -12,6 +12,10 @@ f nixos-unstable/client-config/firefox/done
 d nixos-unstable/client-memory
 d nixos-unstable/client-memory/firefox
 f nixos-unstable/client-memory/firefox/done
+d nixos-unstable/ocr
+d nixos-unstable/ocr/firefox
+f nixos-unstable/ocr/firefox/done
+f nixos-unstable/ocr/firefox/easily.png
 d nixos-unstable/screenshots
 d nixos-unstable/screenshots/nixos
 d nixos-unstable/screenshots/nixos/firefox
@@ -43,6 +47,10 @@ f nixos/client-config/firefox/done
 d nixos/client-memory
 d nixos/client-memory/firefox
 f nixos/client-memory/firefox/done
+d nixos/ocr
+d nixos/ocr/firefox
+f nixos/ocr/firefox/done
+f nixos/ocr/firefox/easily.png
 d nixos/screenshots
 d nixos/screenshots/nixos
 d nixos/screenshots/nixos/firefox

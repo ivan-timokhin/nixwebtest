@@ -7,8 +7,7 @@ let
 
   pkgs = test-pkgs.nixos;
 
-  # Longest word in Shakespeare; technically Latin.
-  test-word = "honorificabilitudinitatibus";
+  test-word = "easily";
 
   test-page = pkgs.writeTextDir "index.html" ''
     <!DOCTYPE html>
@@ -29,7 +28,7 @@ let
 
           body > p {
               font-size: 60px;
-              font-weight: bold;
+              font-family: monospace;
           }
         </style>
       </head>
@@ -142,6 +141,26 @@ let
         script = { nodes, ... }:
           assert nodes.client.config.virtualisation.memorySize == 768;
           "open('done', 'w')";
+      };
+
+      ocr = runner.test {
+        name = "${name}-ocr";
+
+        browsers = b: [ b.firefox ];
+
+        nodes = { inherit webserver; };
+
+        enableOCR = true;
+
+        script = ''
+          webserver.start()
+          webserver.wait_for_open_port(80)
+
+          driver.get("http://webserver")
+          client.screenshot("${test-word}")
+          client.wait_for_text("${test-word}")
+          open('done', 'w')
+        '';
       };
     };
 

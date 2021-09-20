@@ -33,10 +33,11 @@ let
     };
   };
 
-  testSingleBrowser = { name, browser, script, nodes, extraClientConfig ? { } }:
+  testSingleBrowser = { name, browser, script, nodes, extraClientConfig ? { }
+    , enableOCR ? false }:
     assert !(pkgs.lib.hasAttr "client" nodes);
     pkgs.nixosTest ({
-      inherit name;
+      inherit name enableOCR;
 
       nodes = {
         client = { config, pkgs, lib, modulesPath, ... }: {
@@ -111,21 +112,23 @@ let
         '';
     });
 
-  test = { name, browsers, script, nodes, extraClientConfig ? { } }:
+  test = { name, browsers, script, nodes, extraClientConfig ? { }
+    , enableOCR ? false }:
     pkgs.linkFarm name (map (browser: {
       name = browser.name;
       path = testSingleBrowser {
         name = "${name}-${browser.name}";
-        inherit browser script nodes extraClientConfig;
+        inherit browser script nodes extraClientConfig enableOCR;
       };
     }) (browsers browserSet));
 
-  testMany = { name, browsers, scripts, nodes, extraClientConfig ? { } }:
+  testMany = { name, browsers, scripts, nodes, extraClientConfig ? { }
+    , enableOCR ? false }:
     pkgs.linkFarm name (map (scriptName: {
       name = scriptName;
       path = test {
         name = "${name}-${scriptName}";
-        inherit browsers nodes extraClientConfig;
+        inherit browsers nodes extraClientConfig enableOCR;
         script = scripts.${scriptName};
       };
     }) (builtins.attrNames scripts));
