@@ -13,4 +13,3 @@ jobs:
       with:
         extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
     - run: nix-build tests
-    - run: echo OK

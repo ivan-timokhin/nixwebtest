@@ -6,9 +6,8 @@ let
 
   pythonPkgs = pkgs.python3Packages;
 
-  selenium = pythonPkgs.selenium;
-
-  extraPythonPackages = pythonPkgs.requiredPythonModules [ selenium ];
+  extraPythonPackages =
+    pythonPkgs.requiredPythonModules [ pythonPkgs.selenium ];
 
   insertPythonPaths = pkgs.lib.strings.concatMapStringsSep "\n" (drv:
     if drv ? pythonModule then
@@ -92,7 +91,7 @@ let
             };
           };
 
-          networking.firewall = { allowedTCPPorts = [ seleniumPort ]; };
+          networking.firewall.allowedTCPPorts = [ seleniumPort ];
         };
       } // nodes;
 
