@@ -54,8 +54,9 @@ let
     chrome = mkBrowser {
       packages = p:
         [
-          (p.writeShellScriptBin "chrome" ''
-            exec ${p.google-chrome}/bin/google-chrome-stable "$@"
+          (p.runCommandLocal "chrome" {} ''
+            mkdir -p $out/bin
+            ln -s ${p.google-chrome}/bin/google-chrome-stable $out/bin/chrome
           '')
         ];
       seleniumModule = "chrome";
