@@ -17,9 +17,10 @@ let
     else
       "") extraPythonPackages;
 
-  mkGeckodriver = p: p.geckodriver.overrideAttrs (oldAttrs: {
-    patches = oldAttrs.patches ++ [ ./geckodriver_timeout.patch ];
-  });
+  mkGeckodriver = p:
+    p.geckodriver.overrideAttrs (oldAttrs: {
+      patches = oldAttrs.patches ++ [ ./geckodriver_timeout.patch ];
+    });
 
   browserSet = let
     mkBrowser = properties: {
@@ -54,7 +55,7 @@ let
     chrome = mkBrowser {
       packages = p:
         [
-          (p.runCommandLocal "chrome" {} ''
+          (p.runCommandLocal "chrome" { } ''
             mkdir -p $out/bin
             ln -s ${p.google-chrome}/bin/google-chrome-stable $out/bin/chrome
           '')
