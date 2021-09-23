@@ -47,6 +47,8 @@ f stable/script-types/inline/chromium-headless/done
 d stable/script-types/path
 d stable/script-types/path/chromium-headless
 f stable/script-types/path/chromium-headless/done
+d stable/single
+f stable/single/firefox
 d unstable
 d unstable/browsers
 d unstable/browsers/chrome-gui
@@ -95,3 +97,5 @@ f unstable/script-types/inline/chromium-headless/done
 d unstable/script-types/path
 d unstable/script-types/path/chromium-headless
 f unstable/script-types/path/chromium-headless/done
+d unstable/single
+f unstable/single/firefox

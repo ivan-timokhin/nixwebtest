@@ -163,6 +163,18 @@ let
           open('done', 'w')
         '';
       };
+
+      single = runner.testSingleBrowser {
+        name = "${name}-single";
+
+        browser = runner.browsers.firefox-esr.headless;
+
+        nodes = { };
+
+        script = ''
+          open(driver.capabilities['browserName'], 'w')
+        '';
+      };
     };
 
   tests = builtins.mapAttrs testOn test-pkgs;

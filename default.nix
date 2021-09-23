@@ -167,4 +167,7 @@ let
       };
     }) (builtins.attrNames scripts));
 
-in { inherit testSingleBrowser test testMany; }
+in {
+  inherit testSingleBrowser test testMany;
+  browsers = browserSet;
+}
