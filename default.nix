@@ -17,6 +17,10 @@ let
     else
       "") extraPythonPackages;
 
+  mkGeckodriver = p: p.geckodriver.overrideAttrs (oldAttrs: {
+    patches = oldAttrs.patches ++ [ ./geckodriver_timeout.patch ];
+  });
+
   browserSet = let
     mkBrowser = properties: {
       gui = properties // {
@@ -30,13 +34,13 @@ let
     };
   in {
     firefox = mkBrowser {
-      packages = p: [ p.firefox-unwrapped p.geckodriver ];
+      packages = p: [ p.firefox-unwrapped (mkGeckodriver p) ];
       seleniumModule = "firefox";
       name = "firefox";
     };
 
     firefox-esr = mkBrowser {
-      packages = p: [ p.firefox-esr p.geckodriver ];
+      packages = p: [ p.firefox-esr (mkGeckodriver p) ];
       seleniumModule = "firefox";
       name = "firefox-esr";
     };
