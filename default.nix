@@ -83,7 +83,6 @@ let
           ];
 
           virtualisation.memorySize = lib.mkOverride 200 1024;
-          virtualisation.graphics = false;
           environment = {
             systemPackages = [ pkgs.selenium-server-standalone ]
               ++ browser.packages pkgs;
