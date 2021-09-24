@@ -9,9 +9,9 @@ You might *not* want to use `nixwebtest` because…
 
   * Only desktop Firefox and Chromium are supported.  No Edge, no
     mobile browsers, no Safari of any kind.
-  * Each test involves spinning up a network of virtual machines,
-    so a non-trivial suite can take quite a while, especially on CI
-    that doesn’t support nested virtualisation.
+  * Each test involves spinning up a network of virtual machines, so a
+    non-trivial suite can take quite a while to run, especially on a
+    CI service that doesn’t support nested virtualisation.
 
 You might nevertheless *consider* using `nixwebtest` if…
 
