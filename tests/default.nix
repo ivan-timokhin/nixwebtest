@@ -185,6 +185,8 @@ let
           open(driver.capabilities['browserName'], 'w')
         '';
       };
+
+      examples = import ../examples.nix { inherit pkgs; };
     };
 
   tests = builtins.mapAttrs testOn test-pkgs;
