@@ -64,6 +64,8 @@ let
     };
   };
 
+  defaultBrowsers = b: [ b.firefox.headless b.chromium.headless ];
+
   testSingleBrowser = { name, browser, script, nodes, extraClientConfig ? { }
     , enableOCR ? false }:
     assert !(pkgs.lib.hasAttr "client" nodes);
@@ -146,8 +148,8 @@ let
         '';
     });
 
-  test = { name, browsers, script, nodes, extraClientConfig ? { }
-    , enableOCR ? false }:
+  test = { name, browsers ? defaultBrowsers, script, nodes
+    , extraClientConfig ? { }, enableOCR ? false }:
     pkgs.linkFarm name (map (browser: {
       name = browser.name;
       path = testSingleBrowser {
@@ -156,8 +158,8 @@ let
       };
     }) (browsers browserSet));
 
-  testMany = { name, browsers, scripts, nodes, extraClientConfig ? { }
-    , enableOCR ? false }:
+  testMany = { name, browsers ? defaultBrowsers, scripts, nodes
+    , extraClientConfig ? { }, enableOCR ? false }:
     pkgs.linkFarm name (map (scriptName: {
       name = scriptName;
       path = test {

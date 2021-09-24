@@ -175,6 +175,16 @@ let
           open(driver.capabilities['browserName'], 'w')
         '';
       };
+
+      defaults = runner.test {
+        name = "${name}-defaults";
+
+        nodes = { };
+
+        script = ''
+          open(driver.capabilities['browserName'], 'w')
+        '';
+      };
     };
 
   tests = builtins.mapAttrs testOn test-pkgs;

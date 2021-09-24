@@ -23,6 +23,11 @@ f stable/client-config/firefox-headless/done
 d stable/client-memory
 d stable/client-memory/firefox-headless
 f stable/client-memory/firefox-headless/done
+d stable/defaults
+d stable/defaults/chromium-headless
+f stable/defaults/chromium-headless/chrome
+d stable/defaults/firefox-headless
+f stable/defaults/firefox-headless/firefox
 d stable/ocr
 d stable/ocr/firefox-gui
 f stable/ocr/firefox-gui/done
@@ -73,6 +78,11 @@ f unstable/client-config/firefox-headless/done
 d unstable/client-memory
 d unstable/client-memory/firefox-headless
 f unstable/client-memory/firefox-headless/done
+d unstable/defaults
+d unstable/defaults/chromium-headless
+f unstable/defaults/chromium-headless/chrome
+d unstable/defaults/firefox-headless
+f unstable/defaults/firefox-headless/firefox
 d unstable/ocr
 d unstable/ocr/firefox-gui
 f unstable/ocr/firefox-gui/done
