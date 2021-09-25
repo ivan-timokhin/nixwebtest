@@ -36,8 +36,8 @@ in pkgs.linkFarmFromDrvs "nwt-examples" [
     name = "nwt-a";
 
     # Virtual machines are specified in the nodes attribute.  A node
-    # named ‘client’ running a browser will be automatically added, so
-    # the provided set should not contain it.
+    # named ‘client’ running a SOCKS proxy used by the browser will be
+    # automatically added, so the provided set should not contain it.
     nodes = { inherit server; };
 
     # Test script goes into a ‘script’ attribute.
@@ -45,7 +45,7 @@ in pkgs.linkFarmFromDrvs "nwt-examples" [
     # globals (see
     # https://nixos.org/manual/nixos/stable/index.html#sec-nixos-tests)
     # for details, as well as an additional ‘driver’ global, which is
-    # a Selenium remote driver.
+    # a Selenium web driver.
     script = ''
       # Doing anything with the machine implicitly boots it if it is powered off.
       server.wait_for_open_port(80)
@@ -86,8 +86,8 @@ in pkgs.linkFarmFromDrvs "nwt-examples" [
     nodes = { inherit server; };
 
     # This is actually the default value.  Also available are
-    # firefox-esr and chrome, all in headless and gui variants.
-    browsers = b: [ b.firefox.headless b.chromium.headless ];
+    # firefox-esr and chrome.
+    browsers = b: [ b.firefox b.chromium ];
 
     script = ./example-body.py;
   })
@@ -98,25 +98,18 @@ in pkgs.linkFarmFromDrvs "nwt-examples" [
   # derivation, including the all-important driverInteractive attribute.
   #
   # Do keep in mind that running the test interactively will attempt
-  # to bind to port 4444 on your machine.
+  # to bind to port 1080 on your machine.
   (nwt.testSingleBrowser {
     name = "nwt-d";
 
     nodes = { inherit server; };
 
-    # While we’re here, let’s also demonstrate using non-headless
-    # browsers in conjunction with nixosTest’s OCR support.
-    browser = nwt.browsers.firefox-esr.gui;
-
-    enableOCR = true;
+    browser = nwt.browsers.firefox-esr;
 
     script = ''
       server.wait_for_open_port(80)
 
       driver.get("http://server")
-
-      # As a reminder, the machine running the browser is called ‘client’
-      client.wait_for_text("Test page")
     '';
   })
 ]

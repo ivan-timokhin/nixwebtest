@@ -65,7 +65,7 @@ let
     in {
       script-types = runner.testMany {
         name = "${name}-scripts";
-        browsers = b: [ b.chromium.headless ];
+        browsers = b: [ b.chromium ];
 
         nodes = { inherit webserver; };
 
@@ -87,8 +87,7 @@ let
       browsers = runner.test {
         name = "${name}-browsers";
 
-        browsers = b:
-          builtins.concatMap (b: [ b.gui b.headless ]) (builtins.attrValues b);
+        browsers = builtins.attrValues;
 
         nodes = { inherit webserver; };
 
@@ -106,7 +105,7 @@ let
       screenshots = runner.testMany {
         name = "${name}-screenshots";
 
-        browsers = b: [ b.firefox.gui ];
+        browsers = b: [ b.firefox ];
 
         nodes = { };
 
@@ -119,7 +118,7 @@ let
       client-config = runner.test {
         name = "${name}-cc";
 
-        browsers = b: [ b.firefox.headless ];
+        browsers = b: [ b.firefox ];
 
         nodes = { };
 
@@ -133,7 +132,7 @@ let
       client-memory = runner.test {
         name = "${name}-cm";
 
-        browsers = b: [ b.firefox.headless ];
+        browsers = b: [ b.firefox ];
 
         nodes = { };
 
@@ -144,30 +143,10 @@ let
           "open('done', 'w')";
       };
 
-      ocr = runner.test {
-        name = "${name}-ocr";
-
-        browsers = b: [ b.firefox.gui ];
-
-        nodes = { inherit webserver; };
-
-        enableOCR = true;
-
-        script = ''
-          webserver.start()
-          webserver.wait_for_open_port(80)
-
-          driver.get("http://webserver")
-          client.screenshot("${test-word}")
-          client.wait_for_text("${test-word}")
-          open('done', 'w')
-        '';
-      };
-
       single = runner.testSingleBrowser {
         name = "${name}-single";
 
-        browser = runner.browsers.firefox-esr.headless;
+        browser = runner.browsers.firefox-esr;
 
         nodes = { };
 

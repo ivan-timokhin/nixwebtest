@@ -1,8 +1,6 @@
 { pkgs }:
 let
-  user = "alice";
-
-  seleniumPort = 4444;
+  socksPort = 1080;
 
   pythonPkgs = pkgs.python3Packages;
 
@@ -16,55 +14,88 @@ let
     else
       "") extraPythonPackages;
 
-  mkGeckodriver = p:
-    p.geckodriver.overrideAttrs (oldAttrs: {
-      patches = oldAttrs.patches ++ [ ./geckodriver_timeout.patch ];
-    });
-
   browserSet = let
-    mkBrowser = properties: {
-      gui = properties // {
-        name = "${properties.name}-gui";
-        gui = true;
+    chromeScript = pkgs: binary:
+      pkgs.writeTextFile {
+        name = "chrome-script";
+        text = ''
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.chrome.webdriver import WebDriver
+
+          # See https://github.com/NixOS/nixpkgs/issues/136207
+          # (or https://bugs.chromium.org/p/chromium/issues/detail?id=1245258
+          # I guess, but that gives me ‘Permission denied’)
+          os.environ["FONTCONFIG_FILE"] = "${
+            pkgs.makeFontsConf { fontDirectories = [ ]; }
+          }"
+
+          options = Options()
+          options.headless = True
+          options.set_capability('proxy', {
+              'proxyType': 'MANUAL',
+              'socksProxy': '127.0.0.1:${toString socksPort}',
+              'socksVersion': 5
+          })
+          options.binary_location = '${binary}'
+          options.set_capability('args', ['--no-sandbox'])
+
+          def mkDriver():
+              return WebDriver(executable_path='${pkgs.chromedriver}/bin/chromedriver', options=options)
+        '';
       };
-      headless = properties // {
-        name = "${properties.name}-headless";
-        gui = false;
+
+    firefoxScript = pkgs: binary:
+      pkgs.writeTextFile {
+        name = "firefox-script";
+        text = ''
+          from selenium.webdriver.firefox.options import Options
+          from selenium.webdriver.firefox.webdriver import WebDriver
+          from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+
+          os.environ["HOME"] = os.getcwd()
+
+          options = Options()
+          options.headless = True
+          options.set_capability('proxy', {
+              'proxyType': 'manual',
+              'socksProxy': '127.0.0.1:${toString socksPort}',
+              'socksVersion': 5
+          })
+          options.binary_location = '${binary}'
+
+          profile = FirefoxProfile()
+          profile.set_preference("network.proxy.socks_remote_dns", True)
+
+          options.profile = profile
+
+          def mkDriver():
+              return WebDriver(executable_path='${pkgs.geckodriver}/bin/geckodriver', options=options)
+        '';
       };
-    };
   in {
-    firefox = mkBrowser {
-      packages = p: [ p.firefox-unwrapped (mkGeckodriver p) ];
-      seleniumModule = "firefox";
+    firefox = {
       name = "firefox";
+      script = pkgs: firefoxScript pkgs "${pkgs.firefox}/bin/firefox";
     };
 
-    firefox-esr = mkBrowser {
-      packages = p: [ p.firefox-esr (mkGeckodriver p) ];
-      seleniumModule = "firefox";
+    firefox-esr = {
       name = "firefox-esr";
+      script = pkgs: firefoxScript pkgs "${pkgs.firefox-esr}/bin/firefox";
     };
 
-    chromium = mkBrowser {
-      packages = p: [ p.chromium ];
-      seleniumModule = "chrome";
+    chromium = {
       name = "chromium";
+      script = pkgs: chromeScript pkgs "${pkgs.chromium}/bin/chromium";
     };
 
-    chrome = mkBrowser {
-      packages = p:
-        [
-          (p.runCommandLocal "chrome" { } ''
-            mkdir -p $out/bin
-            ln -s ${p.google-chrome}/bin/google-chrome-stable $out/bin/chrome
-          '')
-        ];
-      seleniumModule = "chrome";
+    chrome = {
       name = "chrome";
+      script = pkgs:
+        chromeScript pkgs "${pkgs.google-chrome}/bin/google-chrome-stable";
     };
   };
 
-  defaultBrowsers = b: [ b.firefox.headless b.chromium.headless ];
+  defaultBrowsers = b: [ b.firefox b.chromium ];
 
   testSingleBrowser = { name, browser, script, nodes, extraClientConfig ? { }
     , enableOCR ? false }:
@@ -74,25 +105,26 @@ let
 
       nodes = {
         client = { config, pkgs, lib, modulesPath, ... }: {
-          imports = [
-            (modulesPath + "/../tests/common/user-account.nix")
-            extraClientConfig
-          ] ++ lib.optionals browser.gui [
-            (modulesPath + "/../tests/common/x11.nix")
-            { test-support.displayManager.auto.user = user; }
-          ];
+          imports = [ extraClientConfig ];
 
-          virtualisation.memorySize = lib.mkOverride 200 1024;
-          environment = {
-            systemPackages = [ pkgs.selenium-server-standalone ]
-              ++ browser.packages pkgs;
+          networking.firewall.allowedTCPPorts = [ socksPort ];
 
-            variables = lib.mkIf browser.gui {
-              "XAUTHORITY" = "/home/${user}/.Xauthority";
-            };
-          };
-
-          networking.firewall.allowedTCPPorts = [ seleniumPort ];
+          services.dante.enable = true;
+          services.dante.config = ''
+            internal: 0.0.0.0 port = ${toString socksPort}
+            external: eth1
+            clientmethod: none
+            socksmethod: none
+            client pass {
+                  from: 0.0.0.0/0 to: 0.0.0.0/0
+                  log: error connect disconnect
+            }
+            socks pass {
+                  from: 0.0.0.0/0 to: 0.0.0.0/0
+                  command: bind connect udpassociate bindreply udpreply
+                  log: error connect disconnect iooperation
+            }
+          '';
         };
       } // nodes;
 
@@ -114,25 +146,21 @@ let
 
           ${insertPythonPaths}
 
-          from selenium import webdriver
-          from selenium.webdriver.${browser.seleniumModule}.options import Options
+          client.start()
+          client.wait_for_open_port(${toString socksPort})
+
+          client.forward_port(${toString socksPort}, ${toString socksPort})
+
+          with open('${browser.script pkgs}') as f:
+              bscript = f.read()
+
+          bscriptGlobals = globals()
+          exec(bscript, bscriptGlobals)
 
           if "out" in os.environ:
               os.chdir(os.environ["out"])
 
-          client.start()
-          ${pkgs.lib.optionalString browser.gui "client.wait_for_x()"}
-
-          port = ${toString seleniumPort}
-          client.succeed("su - ${user} -c 'ulimit -c unlimited; selenium-server & disown'")
-          client.wait_for_open_port(port)
-          client.forward_port(port, port)
-
-          options = Options()
-          ${pkgs.lib.optionalString (!browser.gui) "options.headless = True"}
-          with webdriver.Remote(options=options) as driver:
-              driver.maximize_window()
-
+          with bscriptGlobals['mkDriver']() as driver:
               scriptGlobals["driver"] = driver
 
               with open("${script''}") as f:
