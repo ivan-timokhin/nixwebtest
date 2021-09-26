@@ -1,4 +1,4 @@
-{ pkgs ? import (import ./nix/sources.nix { }).nixos { } }:
+{ pkgs ? import (import ./nix/sources.nix { }).test-stable { } }:
 let
   # default.nix has one required argument—the used nixpkgs set.
   # Specific known-to-work versions can be found in nix/sources.json,

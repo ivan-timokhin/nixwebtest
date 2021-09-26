@@ -1,11 +1,11 @@
 { sources ? import ../nix/sources.nix }:
 let
   test-pkgs = {
-    stable = import sources.nixos { };
-    unstable = import sources.nixos-unstable { };
+    stable = import sources.test-stable { };
+    unstable = import sources.test-unstable { };
   };
 
-  pkgs = test-pkgs.stable;
+  pkgs = import sources.nixpkgs-dev { };
 
   test-word = "easily";
 
