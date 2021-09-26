@@ -1,11 +1,16 @@
 { sources ? import ../nix/sources.nix }:
 let
-  test-pkgs = {
-    stable = import sources.test-stable { };
-    unstable = import sources.test-unstable { };
-  };
-
   pkgs = import sources.nixpkgs-dev { };
+
+  test-pkgs = pkgs.lib.listToAttrs (pkgs.lib.concatMap (name:
+    let p = sources.${name};
+    in if pkgs.lib.strings.hasPrefix "test-" name then
+      [
+        (pkgs.lib.nameValuePair (pkgs.lib.removePrefix "test-" name)
+          (import p { }))
+      ]
+    else
+      [ ]) (builtins.attrNames sources));
 
   test-word = "easily";
 
