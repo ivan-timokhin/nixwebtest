@@ -29,6 +29,9 @@ let
             pkgs.makeFontsConf { fontDirectories = [ ]; }
           }"
 
+          # See https://github.com/NixOS/nixpkgs/issues/139547
+          os.environ["LD_LIBRARY_PATH"] = "${pkgs.dbus.lib}/lib"
+
           options = Options()
           options.headless = True
           options.set_capability('proxy', {
