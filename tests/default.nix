@@ -180,14 +180,3 @@ let
 
 in (import ./linkfarm.nix pkgs "nwt-tests-all" tests).overrideAttrs
 (oldAttrs: { passthru = tests; })
-
-# (pkgs.runCommand "nixwebtest-check-output" { } ''
-#   mkdir $out
-#   find -L ${run-all-tests} -printf '%y %P\n' | sort -k2 > $out/list
-#   diff $out/list ${./test-output}
-# '').overrideAttrs (oldAttrs: {
-#   passthru = {
-#     inherit tests;
-#     inherit run-all-tests;
-#   };
-# })
