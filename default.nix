@@ -32,17 +32,13 @@ let
           # See https://github.com/NixOS/nixpkgs/issues/139547
           os.environ["LD_LIBRARY_PATH"] = "${pkgs.dbus.lib}/lib"
 
-          options = Options()
-          options.headless = True
-          options.set_capability('proxy', {
-              'proxyType': 'MANUAL',
-              'socksProxy': '127.0.0.1:${toString socksPort}',
-              'socksVersion': 5
-          })
-          options.binary_location = '${binary}'
-          options.set_capability('args', ['--no-sandbox'])
+          def mkDriver(proxy):
+              options = Options()
+              options.headless = True
+              options.set_capability('proxy', proxy)
+              options.binary_location = '${binary}'
+              options.set_capability('args', ['--no-sandbox'])
 
-          def mkDriver():
               return WebDriver(executable_path='${pkgs.chromedriver}/bin/chromedriver', options=options)
         '';
       };
@@ -57,21 +53,17 @@ let
 
           os.environ["HOME"] = os.getcwd()
 
-          options = Options()
-          options.headless = True
-          options.set_capability('proxy', {
-              'proxyType': 'manual',
-              'socksProxy': '127.0.0.1:${toString socksPort}',
-              'socksVersion': 5
-          })
-          options.binary_location = '${binary}'
+          def mkDriver(proxy):
+              options = Options()
+              options.headless = True
+              options.set_capability('proxy', proxy)
+              options.binary_location = '${binary}'
 
-          profile = FirefoxProfile()
-          profile.set_preference("network.proxy.socks_remote_dns", True)
+              profile = FirefoxProfile()
+              profile.set_preference("network.proxy.socks_remote_dns", True)
 
-          options.profile = profile
+              options.profile = profile
 
-          def mkDriver():
               return WebDriver(executable_path='${pkgs.geckodriver}/bin/geckodriver', options=options)
         '';
       };
@@ -163,7 +155,13 @@ let
           if "out" in os.environ:
               os.chdir(os.environ["out"])
 
-          with bscriptGlobals['mkDriver']() as driver:
+          proxy = {
+              'proxyType': 'MANUAL',
+              'socksProxy': '127.0.0.1:${toString socksPort}',
+              'socksVersion': 5
+          }
+
+          with bscriptGlobals['mkDriver'](proxy = proxy) as driver:
               scriptGlobals["driver"] = driver
 
               with open("${script''}") as f:
