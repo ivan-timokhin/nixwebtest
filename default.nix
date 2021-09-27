@@ -38,6 +38,7 @@ let
               options.set_capability('proxy', proxy)
               options.binary_location = '${binary}'
               options.set_capability('args', ['--no-sandbox'])
+              options.set_capability('acceptSslCerts', True)
 
               return WebDriver(executable_path='${pkgs.chromedriver}/bin/chromedriver', options=options)
         '';
@@ -200,4 +201,5 @@ let
 in {
   inherit testSingleBrowser test testMany;
   browsers = browserSet;
+  self-signed-cert = import ./ssl.nix pkgs;
 }

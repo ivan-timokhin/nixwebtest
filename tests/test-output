@@ -69,3 +69,14 @@ f script-types/path/chromium/done
 d single
 f single/firefox
 f single/geckodriver.log
+d ssl
+d ssl/chrome
+f ssl/chrome/done
+d ssl/chromium
+f ssl/chromium/done
+d ssl/firefox
+d ssl/firefox-esr
+f ssl/firefox-esr/done
+f ssl/firefox-esr/geckodriver.log
+f ssl/firefox/done
+f ssl/firefox/geckodriver.log

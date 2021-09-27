@@ -166,6 +166,37 @@ let
           '';
         };
 
+        ssl = let certificate = runner.self-signed-cert;
+        in runner.test {
+          name = "${name}-ssl";
+
+          browsers = builtins.attrValues;
+
+          nodes = {
+            wserver = { config, ... }: {
+              services.nginx.enable = true;
+              services.nginx.virtualHosts."wserver" = {
+                onlySSL = true;
+                sslCertificate = "${certificate}/server.crt";
+                sslCertificateKey = "${certificate}/server.key";
+                root = test-page;
+              };
+
+              networking.firewall.allowedTCPPorts = [ 443 ];
+            };
+          };
+
+          script = ''
+            wserver.wait_for_open_port(443)
+
+            driver.get("https://wserver")
+
+            p = driver.find_element_by_css_selector("body > p")
+            assert p.text == "${test-word}"
+            open('done', 'w')
+          '';
+        };
+
         examples = import ../examples.nix { inherit pkgs; };
       };
       run-all-tests = import ./linkfarm.nix pkgs "nwt-tests" tests;
