@@ -58,11 +58,7 @@ let
               options.headless = True
               options.set_capability('proxy', proxy)
               options.binary_location = '${binary}'
-
-              profile = FirefoxProfile()
-              profile.set_preference("network.proxy.socks_remote_dns", True)
-
-              options.profile = profile
+              options.set_preference("network.proxy.socks_remote_dns", True)
 
               return WebDriver(executable_path='${pkgs.geckodriver}/bin/geckodriver', options=options)
         '';
