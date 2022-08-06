@@ -29,9 +29,6 @@ let
             pkgs.makeFontsConf { fontDirectories = [ ]; }
           }"
 
-          # See https://github.com/NixOS/nixpkgs/issues/139547
-          os.environ["LD_LIBRARY_PATH"] = "${pkgs.dbus.lib}/lib"
-
           def mkDriver(proxy):
               options = Options()
               options.headless = True
