@@ -47,11 +47,13 @@ in pkgs.linkFarmFromDrvs "nwt-examples" [
     # for details, as well as an additional ‘driver’ global, which is
     # a Selenium web driver.
     script = ''
+      from selenium.webdriver.common.by import By
+
       # Doing anything with the machine implicitly boots it if it is powered off.
       server.wait_for_open_port(80)
 
       driver.get("http://server")
-      assert driver.find_element_by_css_selector("body > p").text == 'test'
+      assert driver.find_element(By.CSS_SELECTOR, "body > p").text == 'test'
     '';
   })
 

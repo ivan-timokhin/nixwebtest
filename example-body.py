@@ -1,4 +1,6 @@
+from selenium.webdriver.common.by import By
+
 server.wait_for_open_port(80)
 
 driver.get("http://server")
-assert driver.find_element_by_css_selector("p").text == 'test'
+assert driver.find_element(By.CSS_SELECTOR, "p").text == 'test'

@@ -93,11 +93,12 @@ let
           nodes = { inherit webserver; };
 
           script = ''
+            from selenium.webdriver.common.by import By
             webserver.start()
             webserver.wait_for_open_port(80)
 
             driver.get("http://webserver")
-            p = driver.find_element_by_css_selector("body > p")
+            p = driver.find_element(By.CSS_SELECTOR, "body > p")
             assert p.text == "${test-word}"
             open("done", "w")
           '';
