@@ -179,4 +179,4 @@ let
   tests = builtins.mapAttrs testOn test-pkgs;
 
 in (import ./linkfarm.nix pkgs "nwt-tests-all" tests).overrideAttrs
-(oldAttrs: { passthru = tests; })
+(oldAttrs: { passthru = tests // { inherit testOn; }; })
