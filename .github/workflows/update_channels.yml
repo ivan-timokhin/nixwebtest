@@ -24,7 +24,7 @@ jobs:
       with:
         extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
     - run: nix-shell --command 'niv update test-${{ matrix.channel }}'
-    - run: nix-build tests -A ${{ matrix.channel }}
+    - run: nix-build tests -A ${{ matrix.channel }} -j1
     - uses: stefanzweifel/git-auto-commit-action@v4
       if: github.repository == 'ivan-timokhin/nixwebtest'
       with:
