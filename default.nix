@@ -163,9 +163,9 @@ let
               # This is not strictly necessary, but associates a file
               # name with the script text for slightly friendlier
               # error messages
-              script = compile(script, "${script''}", 'exec')
+              compiledScript = compile(script, "${script''}", 'exec')
 
-              exec(script, scriptGlobals)
+              exec(compiledScript, scriptGlobals)
         '';
     });
 
