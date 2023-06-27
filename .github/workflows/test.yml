@@ -9,7 +9,8 @@ jobs:
       NIXPKGS_ALLOW_UNFREE: 1
     steps:
     - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v18
+    - uses: cachix/install-nix-action@v20
       with:
         extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
-    - run: nix-build tests -j1
+    - run: nix-build tests -j1 -A stable
+    - run: nix-build tests -j1 -A unstable
