@@ -76,11 +76,11 @@ let
             path = ./css-check.py;
 
             function-inline = { nodes, ... }:
-              assert nodes.webserver.config.test-word == test-word;
+              assert nodes.webserver.test-word == test-word;
               "open('done', 'w')";
 
             function-path = { nodes, ... }:
-              assert nodes.webserver.config.test-word == test-word;
+              assert nodes.webserver.test-word == test-word;
               ./css-check.py;
           };
         };
@@ -127,7 +127,7 @@ let
           extraClientConfig = test-module;
 
           script = { nodes, ... }:
-            assert nodes.client.config.test-word == test-word;
+            assert nodes.client.test-word == test-word;
             "open('done', 'w')";
         };
 
@@ -141,7 +141,7 @@ let
           extraClientConfig = { virtualisation.memorySize = 768; };
 
           script = { nodes, ... }:
-            assert nodes.client.config.virtualisation.memorySize == 768;
+            assert nodes.client.virtualisation.memorySize == 768;
             "open('done', 'w')";
         };
 
