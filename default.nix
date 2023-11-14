@@ -20,6 +20,7 @@ let
         name = "chrome-script";
         text = ''
           from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.chrome.service import Service
           from selenium.webdriver.chrome.webdriver import WebDriver
 
           # See https://github.com/NixOS/nixpkgs/issues/136207
@@ -34,9 +35,11 @@ let
               options.headless = True
               options.set_capability('proxy', proxy)
               options.binary_location = '${binary}'
-              options.set_capability('args', ['--no-sandbox'])
+              options.add_argument('--no-sandbox')
 
-              return WebDriver(executable_path='${pkgs.chromedriver}/bin/chromedriver', options=options)
+              service = Service('${pkgs.chromedriver}/bin/chromedriver')
+
+              return WebDriver(service=service, options=options)
         '';
       };
 
@@ -45,6 +48,7 @@ let
         name = "firefox-script";
         text = ''
           from selenium.webdriver.firefox.options import Options
+          from selenium.webdriver.firefox.service import Service
           from selenium.webdriver.firefox.webdriver import WebDriver
           from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 
@@ -57,7 +61,9 @@ let
               options.binary_location = '${binary}'
               options.set_preference("network.proxy.socks_remote_dns", True)
 
-              return WebDriver(executable_path='${pkgs.geckodriver}/bin/geckodriver', options=options)
+              service = Service('${pkgs.geckodriver}/bin/geckodriver')
+
+              return WebDriver(service=service, options=options)
         '';
       };
   in {
@@ -149,7 +155,7 @@ let
               os.chdir(os.environ["out"])
 
           proxy = {
-              'proxyType': 'MANUAL',
+              'proxyType': 'manual',
               'socksProxy': '127.0.0.1:${toString socksPort}',
               'socksVersion': 5
           }
